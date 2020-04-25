@@ -14,96 +14,34 @@ web_data = requests.get(url, headers=headers, proxies=proxies)
 
 改进：确认网站title
 
-完整代码：
 
- from bs4 import BeautifulSoup
- import requests
- import re
- import json
+Q1: 怎么在ip被封之后实现自动更换代理池内的代理？
 
+A1: 用random.choice 随机选取ip
 
- def open_proxy_url(url):
-    user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119    Safari/537.36'
-    headers = {'User-Agent': user_agent}
-    try:
-        r = requests.get(url, headers = headers, timeout = 10)
-        r.raise_for_status()
-        r.encoding = r.apparent_encoding
-        return r.text
-    except:
-        print('无法访问网页' + url)
+Q2: 如何用一句通俗的语言解释清楚request、beautifulsoup和selenium三者与浏览器之间的关系？
 
+A2: BeautifulSoup：处理速度快，同时可以连续查找，主要用于静态网页 
 
- def get_proxy_ip(response):
-    proxy_ip_list = []
-    soup = BeautifulSoup(response, 'html.parser')
-    proxy_ips = soup.find(id = 'ip_list').find_all('tr')
-    for proxy_ip in proxy_ips:
-        if len(proxy_ip.select('td')) >=8:
-            ip = proxy_ip.select('td')[1].text
-            port = proxy_ip.select('td')[2].text
-            protocol = proxy_ip.select('td')[5].text
-            if protocol in ('HTTP','HTTPS','http','https'):
-                proxy_ip_list.append(f'{protocol}://{ip}:{port}')
-    return proxy_ip_list
+经过BeautifulSoup处理以后，编码方式都变成了Unicode,需要将其变成所需的编码方式：可以利用encode(‘需要的编码’)，还可以利用 BeautifulSoup(网页/html, lxml/xml”).prettify(‘需要的编码’) 可以利用soup.originalencoding检测原来的编码。 Selenium：主要用于动态网页，查找速度慢，解析时要注意 .findelements_byxpath和.findelement_by_xpath有区别，同时利用浏览器时要配置。 .PhantomJS：  drive=webdriver.PhantomJS(‘D:\Anaconda2\phantomjswindows\binphantomjs.exe’) 
 
+Q3: 构建好代理池后，如何在一次爬虫中自动切换代理？ 比如代理无效，或者代理ip被封，这时自动切换下一个ip。
 
- def open_url_using_proxy(url, proxy):
-    user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
-    headers = {'User-Agent': user_agent}
-    proxies = {}
-    if proxy.startswith(('HTTPS','https')):
-        proxies['https'] = proxy
-    else:
-        proxies['http'] = proxy
+A3: 首先你要有一个ip代理池（如果比较豪可以自己买真实ip自行搭建，好处独享有技术门槛,或者找第三方ip代理商对接,好吃廉价,但ip不独享）， 真实ip需要自己写程序来代理转发，第三方ip代理商则会提供相关转发API,直接调用就可以，这东西没什么技术难度 
 
-    try:
-        r = requests.get(url, headers = headers, proxies = proxies, timeout = 10)
-        r.raise_for_status()
-        r.encoding = r.apparent_encoding
-        return (r.text, r.status_code)
-    except:
-        print('无法访问网页' + url)
-        print('无效代理IP: ' + proxy)
-        return False
+Q4: ip_list.append(f'{protpcol}://{ip}:{port}')这里的f是格式化？
 
+A4:
 
- def check_proxy_avaliability(proxy):
-    url = 'http://www.baidu.com'
-    result = open_url_using_proxy(url, proxy)
-    VALID_PROXY = False
-    if result:
-        text, status_code = result
-        if status_code == 200:
-            r_title = re.findall('<title>.*</title>', text)
-            if r_title:
-                if r_title[0] == '<title>百度一下，你就知道</title>':
-                    VALID_PROXY = True
-        if VALID_PROXY:
-            check_ip_url = 'https://jsonip.com/'
-            try:
-                text, status_code = open_url_using_proxy(check_ip_url, proxy)
-            except:
-                return
-
-            print('有效代理IP: ' + proxy)
-            with open('valid_proxy_ip.txt','a') as f:
-                f.writelines(proxy)
-            try:
-                source_ip = json.loads(text).get('ip')
-                print(f'源IP地址为：{source_ip}')
-                print('='*40)
-            except:
-                print('返回的非json,无法解析')
-                print(text)
-    else:
-        print('无效代理IP: ' + proxy)
-
-
- if __name__ == '__main__':
-    proxy_url = 'https://www.xicidaili.com/'
-    proxy_ip_filename = 'proxy_ip.txt'
-    text = open(proxy_ip_filename, 'r').read()
-    proxy_ip_list = get_proxy_ip(text)
-    for proxy in proxy_ip_list:
-        check_proxy_avaliability(proxy)
+从代理ip网站爬取IP地址及端口号并储存
+验证ip是否能用
+格式化ip地址
+在requests中使用代理ip爬取网站
+小项目
+挑战项目：模拟登录丁香园，并抓取论坛页面所有的人员基本信息与回复帖子内容。
+丁香园论坛：http://www.dxy.cn/bbs/thread/626626#626626 。
+In [1]:
+import requests, json, re, random,time
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from lxml import etree
