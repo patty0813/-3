@@ -16,12 +16,14 @@ web_data = requests.get(url, headers=headers, proxies=proxies)
 
 完整代码：
 
-from bs4 import BeautifulSoup
-import requests
-import re
-import json
-def open_proxy_url(url):
-    user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
+ from bs4 import BeautifulSoup
+ import requests
+ import re
+ import json
+
+
+ def open_proxy_url(url):
+    user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119    Safari/537.36'
     headers = {'User-Agent': user_agent}
     try:
         r = requests.get(url, headers = headers, timeout = 10)
@@ -30,7 +32,9 @@ def open_proxy_url(url):
         return r.text
     except:
         print('无法访问网页' + url)
-def get_proxy_ip(response):
+
+
+ def get_proxy_ip(response):
     proxy_ip_list = []
     soup = BeautifulSoup(response, 'html.parser')
     proxy_ips = soup.find(id = 'ip_list').find_all('tr')
@@ -43,7 +47,8 @@ def get_proxy_ip(response):
                 proxy_ip_list.append(f'{protocol}://{ip}:{port}')
     return proxy_ip_list
 
-def open_url_using_proxy(url, proxy):
+
+ def open_url_using_proxy(url, proxy):
     user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.119 Safari/537.36'
     headers = {'User-Agent': user_agent}
     proxies = {}
@@ -51,6 +56,7 @@ def open_url_using_proxy(url, proxy):
         proxies['https'] = proxy
     else:
         proxies['http'] = proxy
+
     try:
         r = requests.get(url, headers = headers, proxies = proxies, timeout = 10)
         r.raise_for_status()
@@ -61,7 +67,8 @@ def open_url_using_proxy(url, proxy):
         print('无效代理IP: ' + proxy)
         return False
 
-def check_proxy_avaliability(proxy):
+
+ def check_proxy_avaliability(proxy):
     url = 'http://www.baidu.com'
     result = open_url_using_proxy(url, proxy)
     VALID_PROXY = False
@@ -78,6 +85,7 @@ def check_proxy_avaliability(proxy):
                 text, status_code = open_url_using_proxy(check_ip_url, proxy)
             except:
                 return
+
             print('有效代理IP: ' + proxy)
             with open('valid_proxy_ip.txt','a') as f:
                 f.writelines(proxy)
@@ -90,7 +98,9 @@ def check_proxy_avaliability(proxy):
                 print(text)
     else:
         print('无效代理IP: ' + proxy)
-if __name__ == '__main__':
+
+
+ if __name__ == '__main__':
     proxy_url = 'https://www.xicidaili.com/'
     proxy_ip_filename = 'proxy_ip.txt'
     text = open(proxy_ip_filename, 'r').read()
