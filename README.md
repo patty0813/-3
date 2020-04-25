@@ -45,3 +45,66 @@ import requests, json, re, random,time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from lxml import etree
+
+
+
+selenium
+selenium是什么：一个自动化测试工具（大家都是这么说的）
+selenium应用场景：用代码的方式去模拟浏览器操作过程（如：打开浏览器、在输入框里输入文字、回车等），在爬虫方面很有必要
+准备工作：
+
+安装selenium（pip install selenium）
+
+安装chromedriver（一个驱动程序，用以启动chrome浏览器，具体的驱动程序需要对应的驱动，在官网上可以找到下载地址）
+
+
+
+session和cookies
+Session 是会话的意思，会话是产生在服务端的，用来保存当前用户的会话信息，而 Cookies 是保存在客户端（浏览器），有了 Cookie 以后，客户端（浏览器）再次访问服务端的时候，会将这个 Cookie 带上，这时，服务端可以通过 Cookie 来识别本次请求到底是谁在访问。
+
+可以简单理解为 Cookies 中保存了登录凭证，我们只要持有这个凭证，就可以在服务端保持一个登录状态。
+
+在爬虫中，有时候遇到需要登录才能访问的网页，只需要在登录后获取了 Cookies ，在下次访问的时候将登录后获取到的 Cookies 放在请求头中，这时，服务端就会认为我们的爬虫是一个正常登录用户。
+
+In [1]:
+import time
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+In [ ]:
+"""
+使用selenium进行模拟登陆
+1.初始化ChromDriver
+2.打开163登陆页面
+3.找到用户名的输入框，输入用户名
+4.找到密码框，输入密码
+5.提交用户信息
+"""
+name = '*'
+passwd = '*'
+driver = webdriver.Chrome('./chromedriver')
+driver.get('https://mail.163.com/')
+# 将窗口调整最大
+driver.maximize_window()
+# 休息5s
+time.sleep(5)
+current_window_1 = driver.current_window_handle
+print(current_window_1)
+In [ ]:
+button = driver.find_element_by_id('lbNormal')
+button.click()
+
+driver.switch_to.frame(driver.find_element_by_xpath("//iframe[starts-with(@id, 'x-URS-iframe')]"))
+In [ ]:
+email = driver.find_element_by_name('email')
+#email = driver.find_element_by_xpath('//input[@name="email"]')
+email.send_keys(name)
+password = driver.find_element_by_name('password')
+#password = driver.find_element_by_xpath("//input[@name='password']")
+password.send_keys(passwd)
+submit = driver.find_element_by_id("dologin")
+time.sleep(15)
+submit.click()
+time.sleep(10)
+print(driver.page_source)
+driver.quit()
